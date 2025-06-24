@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "安全衛生教育の実施"
     ];
 
-    const drawingCanvases = {}; // 各項目の手書きCanvas要素を保持
+    // 手書き機能の削除に伴い、drawingCanvasesは不要になります
 
     // 点検項目を動的に生成
     inspectionItemsData.forEach((itemText, index) => {
@@ -40,11 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label><input type="radio" name="${itemId}-score" value="2"> 2点</label>
                 <label><input type="radio" name="${itemId}-score" value="1"> 1点</label>
             </div>
-            <div class="handwriting-section">
-                <h4>手書きメモ:</h4>
-                <canvas class="handwriting-area" id="canvas-${itemId}" width="400" height="100"></canvas>
-                <button type="button" class="clear-handwriting" data-item-id="${itemId}">手書きを消去</button>
-            </div>
             <div class="photo-section">
                 <h4>写真:</h4>
                 <input type="file" accept="image/*" class="photo-upload" id="photo-${itemId}" data-item-id="${itemId}" multiple>
@@ -53,40 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         inspectionItemsContainer.appendChild(itemDiv);
 
-        // 手書き機能の初期化
-        const canvas = document.getElementById(`canvas-${itemId}`);
-        const ctx = canvas.getContext('2d');
-        drawingCanvases[itemId] = { canvas, ctx }; // CanvasとContextを保存
-
-        let isDrawing = false;
-        canvas.addEventListener('pointerdown', (e) => {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            ctx.beginPath();
-            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        });
-
-        canvas.addEventListener('pointermove', (e) => {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            ctx.stroke();
-        });
-
-        canvas.addEventListener('pointerup', () => {
-            isDrawing = false;
-            ctx.closePath();
-        });
-
-        canvas.addEventListener('pointerleave', () => {
-             isDrawing = false; // カーソルが外れたら描画を停止
-        });
-
-        // 手書き消去ボタン
-        const clearHandwritingButton = itemDiv.querySelector(`.clear-handwriting[data-item-id="${itemId}"]`);
-        clearHandwritingButton.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
+        // 手書き機能関連のコードを削除します
+        // const canvas = document.getElementById(`canvas-${itemId}`);
+        // ... (手書き関連のイベントリスナーやクリアボタンの処理を全て削除) ...
 
         // 写真アップロード機能
         const photoUploadInput = document.getElementById(`photo-${itemId}`);
@@ -97,16 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const imgWrapper = document.createElement('div');
-                        imgWrapper.classList.add('photo-wrapper'); // 削除ボタンをまとめるためのラッパー
+                        imgWrapper.classList.add('photo-wrapper');
                         const img = document.createElement('img');
                         img.src = e.target.result;
-                        photoPreviewDiv.appendChild(img);
 
                         const deleteBtn = document.createElement('button');
                         deleteBtn.classList.add('delete-photo');
                         deleteBtn.textContent = '削除';
                         deleteBtn.addEventListener('click', () => {
-                            imgWrapper.remove(); // 画像とボタンを削除
+                            imgWrapper.remove();
                         });
                         imgWrapper.appendChild(img);
                         imgWrapper.appendChild(deleteBtn);
@@ -123,10 +86,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
+        // 埋め込んだ日本語フォントを追加 (前回の手順で変換・配置したファイルが必要です)
+        doc.addFont('NotoSansJP-Regular-normal.js', 'NotoSansJP-Regular', 'normal');
+        doc.setFont('NotoSansJP-Regular', 'normal');
+
         let yPos = 10;
-        doc.setFont('NotoSansJP-Regular', 'normal'); // 日本語フォントの設定（後述）
+        doc.setFontSize(16);
         doc.text("職場安全点検結果", 10, yPos);
+        yPos += 15;
+
+        // 参加者情報を取得してPDFに追加
+        const selectedInspector = document.querySelector('input[name="inspector"]:checked');
+        const inspectorName = selectedInspector ? selectedInspector.value : '未選択';
+        doc.setFontSize(12);
+        doc.text(`点検実施者: ${inspectorName}`, 10, yPos);
         yPos += 10;
+
+        // 点検日を追加
+        const today = new Date();
+        const dateString = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+        doc.text(`点検日: ${dateString}`, 10, yPos);
+        yPos += 15; // 次のセクションとの間隔を空ける
+
+        doc.setFontSize(12); // 項目テキストのフォントサイズに戻す
 
         for (let i = 0; i < inspectionItemsData.length; i++) {
             const itemId = `item${i + 1}`;
@@ -137,18 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(`${i + 1}. ${itemText} (点数: ${score})`, 10, yPos);
             yPos += 7;
 
-            // 手書きメモの取得
-            const canvas = document.getElementById(`canvas-${itemId}`);
-            if (canvas && canvas.toDataURL) {
-                const handwritingDataURL = canvas.toDataURL('image/png');
-                // 手書きがある程度描かれている場合のみPDFに追加
-                if (handwritingDataURL !== canvas.toDataURL('image/png', { alpha: false })) { // 透明度情報がない場合のチェック
-                    doc.text("手書きメモ:", 15, yPos);
-                    yPos += 5;
-                    doc.addImage(handwritingDataURL, 'PNG', 15, yPos, 80, 25); // 画像のサイズ調整
-                    yPos += 30;
-                }
-            }
+            // 手書きメモの取得部分は削除
 
             // 写真の取得
             const photoPreviewDiv = document.getElementById(`preview-${itemId}`);
@@ -160,6 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const imgData = img.src;
                     const imgWidth = 50; // PDF内の画像の幅
                     const imgHeight = (img.naturalHeight / img.naturalWidth) * imgWidth;
+                    // 新しいページに収まらない場合はページ追加
+                    if (yPos + imgHeight + 5 > doc.internal.pageSize.height - 20) {
+                        doc.addPage();
+                        yPos = 10;
+                        doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を維持
+                    }
                     doc.addImage(imgData, 'JPEG', 15, yPos, imgWidth, imgHeight);
                     yPos += imgHeight + 5;
                 }
@@ -169,9 +146,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (yPos > doc.internal.pageSize.height - 30) { // ページが溢れそうなら新しいページ
                 doc.addPage();
                 yPos = 10;
+                doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を維持
             }
         }
 
+        // PDFの保存
         doc.save('安全点検結果.pdf');
     });
 });
