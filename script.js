@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inspectionItemsContainer = document.getElementById('inspectionItems');
     const generatePdfButton = document.getElementById('generatePdf');
 
-    // 点検項目データ (20項目)
     const inspectionItemsData = [
         "安全通路の確保",
         "整理整頓の状況",
@@ -26,9 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "安全衛生教育の実施"
     ];
 
-    // 手書き機能の削除に伴い、drawingCanvasesは不要になります
-
-    // 点検項目を動的に生成
     inspectionItemsData.forEach((itemText, index) => {
         const itemId = `item${index + 1}`;
         const itemDiv = document.createElement('div');
@@ -47,10 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         inspectionItemsContainer.appendChild(itemDiv);
-
-        // 手書き機能関連のコードを削除します
-        // const canvas = document.getElementById(`canvas-${itemId}`);
-        // ... (手書き関連のイベントリスナーやクリアボタンの処理を全て削除) ...
 
         // 写真アップロード機能
         const photoUploadInput = document.getElementById(`photo-${itemId}`);
@@ -92,14 +84,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let yPos = 10;
         doc.setFontSize(16);
-        doc.text("職場安全点検結果", 10, yPos);
+        doc.text("医王ヶ丘職場安全点検結果", 10, yPos); // タイトル変更
         yPos += 15;
 
-        // 参加者情報を取得してPDFに追加
-        const selectedInspector = document.querySelector('input[name="inspector"]:checked');
-        const inspectorName = selectedInspector ? selectedInspector.value : '未選択';
+        // 参加者情報を取得してPDFに追加 (チェックボックス対応)
+        const selectedInspectors = Array.from(document.querySelectorAll('input[name="inspector"]:checked'))
+                                       .map(checkbox => checkbox.value);
+        const inspectorNames = selectedInspectors.length > 0 ? selectedInspectors.join(', ') : '未選択';
         doc.setFontSize(12);
-        doc.text(`点検実施者: ${inspectorName}`, 10, yPos);
+        doc.text(`点検実施者: ${inspectorNames}`, 10, yPos);
         yPos += 10;
 
         // 点検日を追加
@@ -118,8 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             doc.text(`${i + 1}. ${itemText} (点数: ${score})`, 10, yPos);
             yPos += 7;
-
-            // 手書きメモの取得部分は削除
 
             // 写真の取得
             const photoPreviewDiv = document.getElementById(`preview-${itemId}`);
@@ -151,6 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // PDFの保存
-        doc.save('安全点検結果.pdf');
+        doc.save('医王ヶ丘安全点検結果.pdf'); // ファイル名も変更
     });
 });
