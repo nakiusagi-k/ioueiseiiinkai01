@@ -1,3 +1,5 @@
+/* style.css は前回のものから変更ありませんが、参加者選択部分のスタイル例を追加します */
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f4f4;
@@ -24,6 +26,34 @@ h1 {
     margin-bottom: 30px;
 }
 
+/* 参加者選択部分のスタイル */
+.participant-selection {
+    background-color: #e9f5ff;
+    border: 1px solid #cce7ff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.participant-selection h2 {
+    margin-top: 0;
+    color: #0056b3;
+    margin-bottom: 15px;
+}
+
+.participant-selection label {
+    display: block; /* 各ラジオボタンを改行 */
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.participant-selection input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2); /* ラジオボタンを少し大きく表示 */
+    vertical-align: middle; /* テキストと位置を合わせる */
+}
+
+
 .inspection-item {
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -47,16 +77,19 @@ h1 {
     margin-right: 5px;
 }
 
+/* 手書きエリア関連のスタイルはHTMLから削除されたため、ここからも削除しても良いですが、
+   残しておいても影響はありません。念のためコメントアウトまたは削除を推奨します。
 .handwriting-area {
     border: 1px solid #ccc;
     background-color: #fff;
     border-radius: 5px;
     margin-top: 10px;
     width: 100%;
-    height: 100px; /* 手書きエリアの高さ */
-    cursor: crosshair; /* マウスカーソルを手書き用に */
-    box-sizing: border-box; /* paddingとborderをwidth/heightに含める */
+    height: 100px;
+    cursor: crosshair;
+    box-sizing: border-box;
 }
+*/
 
 .photo-section {
     margin-top: 15px;
