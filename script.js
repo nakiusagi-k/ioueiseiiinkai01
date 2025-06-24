@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "安全衛生教育の実施"
     ];
 
+    // 各点検項目を動的に生成する処理 (変更なし)
     inspectionItemsData.forEach((itemText, index) => {
         const itemId = `item${index + 1}`;
         const itemDiv = document.createElement('div');
@@ -44,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         inspectionItemsContainer.appendChild(itemDiv);
 
-        // 写真アップロード機能
         const photoUploadInput = document.getElementById(`photo-${itemId}`);
         const photoPreviewDiv = document.getElementById(`preview-${itemId}`);
         photoUploadInput.addEventListener('change', (event) => {
@@ -78,16 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // 埋め込んだ日本語フォントを追加 (前回の手順で変換・配置したファイルが必要です)
+        // ----------------------------------------------------
+        // 日本語フォントの設定をより確実にするための修正
+        // ----------------------------------------------------
         doc.addFont('NotoSansJP-Regular-normal.js', 'NotoSansJP-Regular', 'normal');
-        doc.setFont('NotoSansJP-Regular', 'normal');
+        doc.setFont('NotoSansJP-Regular', 'normal'); // 初期フォント設定
 
         let yPos = 10;
         doc.setFontSize(16);
-        doc.text("医王ヶ丘職場安全点検結果", 10, yPos); // タイトル変更
+        doc.text("医王ヶ丘職場安全点検結果", 10, yPos);
         yPos += 15;
 
-        // 参加者情報を取得してPDFに追加 (チェックボックス対応)
+        // 点検実施者情報を取得
         const selectedInspectors = Array.from(document.querySelectorAll('input[name="inspector"]:checked'))
                                        .map(checkbox => checkbox.value);
         const inspectorNames = selectedInspectors.length > 0 ? selectedInspectors.join(', ') : '未選択';
@@ -95,24 +97,36 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.text(`点検実施者: ${inspectorNames}`, 10, yPos);
         yPos += 10;
 
-        // 点検日を追加
+        // 点検日情報を追加
         const today = new Date();
         const dateString = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
         doc.text(`点検日: ${dateString}`, 10, yPos);
-        yPos += 15; // 次のセクションとの間隔を空ける
+        yPos += 15;
 
         doc.setFontSize(12); // 項目テキストのフォントサイズに戻す
 
+        let totalScore = 0; // 合計点数用変数
+
+        // 各点検項目の情報をPDFに追加
         for (let i = 0; i < inspectionItemsData.length; i++) {
             const itemId = `item${i + 1}`;
             const itemText = inspectionItemsData[i];
-            const selectedScore = document.querySelector(`input[name="${itemId}-score"]:checked`);
-            const score = selectedScore ? selectedScore.value : '未選択';
+            const selectedScoreRadio = document.querySelector(`input[name="${itemId}-score"]:checked`);
+            const score = selectedScoreRadio ? parseInt(selectedScoreRadio.value, 10) : 0; // 点数を数値として取得、未選択は0点
+            totalScore += score; // 合計点数に加算
 
-            doc.text(`${i + 1}. ${itemText} (点数: ${score})`, 10, yPos);
+            // 新しいページに移る可能性があるため、ここでフォント設定を再確認
+            if (yPos > doc.internal.pageSize.height - 40) { // 次の項目が収まらないと判断
+                doc.addPage();
+                yPos = 10;
+                doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を再適用
+                doc.setFontSize(12); // フォントサイズもリセット
+            }
+
+            doc.text(`${i + 1}. ${itemText} (点数: ${score}点)`, 10, yPos);
             yPos += 7;
 
-            // 写真の取得
+            // 写真の取得と追加
             const photoPreviewDiv = document.getElementById(`preview-${itemId}`);
             const photos = photoPreviewDiv.querySelectorAll('img');
             if (photos.length > 0) {
@@ -120,13 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 yPos += 5;
                 for (const img of photos) {
                     const imgData = img.src;
-                    const imgWidth = 50; // PDF内の画像の幅
+                    const imgWidth = 50;
                     const imgHeight = (img.naturalHeight / img.naturalWidth) * imgWidth;
-                    // 新しいページに収まらない場合はページ追加
-                    if (yPos + imgHeight + 5 > doc.internal.pageSize.height - 20) {
+
+                    if (yPos + imgHeight + 5 > doc.internal.pageSize.height - 20) { // 画像が収まらないと判断
                         doc.addPage();
                         yPos = 10;
-                        doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を維持
+                        doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を再適用
+                        doc.setFontSize(12); // フォントサイズもリセット
                     }
                     doc.addImage(imgData, 'JPEG', 15, yPos, imgWidth, imgHeight);
                     yPos += imgHeight + 5;
@@ -134,14 +149,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             yPos += 10; // 次の項目との間隔
-            if (yPos > doc.internal.pageSize.height - 30) { // ページが溢れそうなら新しいページ
-                doc.addPage();
-                yPos = 10;
-                doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を維持
-            }
         }
 
+        // 合計点数をPDFの最後に追加
+        if (yPos > doc.internal.pageSize.height - 30) { // 合計点数が収まらないと判断
+            doc.addPage();
+            yPos = 10;
+            doc.setFont('NotoSansJP-Regular', 'normal'); // 新しいページでもフォント設定を再適用
+            doc.setFontSize(12); // フォントサイズもリセット
+        }
+        doc.setFontSize(14); // 合計点数を少し大きく表示
+        doc.text(`合計点数: ${totalScore}点`, 10, yPos);
+
         // PDFの保存
-        doc.save('医王ヶ丘安全点検結果.pdf'); // ファイル名も変更
+        doc.save('医王ヶ丘安全点検結果.pdf');
     });
 });
