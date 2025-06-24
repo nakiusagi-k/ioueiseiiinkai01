@@ -42,14 +42,14 @@ h1 {
 }
 
 .participant-selection label {
-    display: block; /* 各ラジオボタンを改行 */
+    display: block; /* 各チェックボックスを改行 */
     margin-bottom: 10px;
     font-size: 1.1em;
 }
 
-.participant-selection input[type="radio"] {
+.participant-selection input[type="checkbox"] { /* input[type="radio"] から input[type="checkbox"] に変更 */
     margin-right: 10px;
-    transform: scale(1.2); /* ラジオボタンを少し大きく表示 */
+    transform: scale(1.2); /* チェックボックスを少し大きく表示 */
     vertical-align: middle; /* テキストと位置を合わせる */
 }
 
@@ -77,8 +77,8 @@ h1 {
     margin-right: 5px;
 }
 
-/* 手書きエリア関連のスタイルはHTMLから削除されたため、ここからも削除しても良いですが、
-   残しておいても影響はありません。念のためコメントアウトまたは削除を推奨します。
+/* 手書きエリア関連のスタイルは不要になったため、この部分を削除することを推奨します */
+/*
 .handwriting-area {
     border: 1px solid #ccc;
     background-color: #fff;
