@@ -10,6 +10,15 @@
     <div class="container">
         <h1>職場安全点検アプリ</h1>
 
+        <div class="participant-selection">
+            <h2>点検実施者</h2>
+            <label><input type="radio" name="inspector" value="魚谷Dr" required> 魚谷Dr</label><br>
+            <label><input type="radio" name="inspector" value="平郡部長"> 平郡部長</label><br>
+            <label><input type="radio" name="inspector" value="谷事務長"> 谷事務長</label><br>
+            <label><input type="radio" name="inspector" value="岡由希子"> 岡由希子</label><br>
+            <label><input type="radio" name="inspector" value="事務局：相京"> 事務局：相京</label><br>
+        </div>
+
         <form id="inspectionForm">
             <div id="inspectionItems">
                 </div>
@@ -19,6 +28,6 @@
     </div>
 
     <script src="lib/jspdf.umd.min.js"></script>
-    <script src="script.js"></script>
+    <script src="lib/NotoSansJP-Regular-normal.js"></script> <script src="script.js"></script>
 </body>
 </html>
